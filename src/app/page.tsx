@@ -1,101 +1,134 @@
-import Image from "next/image";
+// File: pages/index.js
+"use client";
+import { useState, useEffect } from 'react';
+import Head from 'next/head';
+
+// Sample data - in a real app, this would come from a database or API
+const initialMeals: { [key: string]: { name: string; category: string; isFavorite: boolean; }[] } = {
+  lunch: [
+    { name: 'Grilled Chicken Salad', category: 'Healthy', isFavorite: false },
+    { name: 'Vegetable Stir Fry', category: 'Vegetarian', isFavorite: false },
+    { name: 'Tuna Sandwich', category: 'Quick', isFavorite: false },
+  ],
+  dinner: [
+    { name: 'Spaghetti Bolognese', category: 'Comfort Food', isFavorite: false },
+    { name: 'Baked Salmon', category: 'Healthy', isFavorite: false },
+    { name: 'Vegetable Curry', category: 'Vegetarian', isFavorite: false },
+  ],
+};
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="https://nextjs.org/icons/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  const [meals, setMeals] = useState(initialMeals);
+  const [currentMeal, setCurrentMeal] = useState('');
+  const [suggestion, setSuggestion] = useState<{ name: string; category: string; isFavorite: boolean; } | null>(null);
+  const [newItemName, setNewItemName] = useState('');
+  const [newItemCategory, setNewItemCategory] = useState('');
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="https://nextjs.org/icons/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  // Determine current meal based on time
+  useEffect(() => {
+    const now = new Date();
+    const hour = now.getHours();
+    setCurrentMeal(hour >= 17 ? 'dinner' : 'lunch');
+  }, []);
+
+  // Get random suggestion
+  const getRandomSuggestion = () => {
+    const mealList = meals[currentMeal];
+    const randomIndex = Math.floor(Math.random() * mealList.length);
+    setSuggestion(mealList[randomIndex]);
+  };
+
+  // Add new meal item
+  const addNewItem = () => {
+    if (newItemName && newItemCategory) {
+      setMeals(prevMeals => ({
+        ...prevMeals,
+        [currentMeal]: [
+          ...prevMeals[currentMeal],
+          { name: newItemName, category: newItemCategory, isFavorite: false }
+        ],
+      }));
+      setNewItemName('');
+      setNewItemCategory('');
+    }
+  };
+
+  // Toggle favorite status
+  const toggleFavorite = (mealName: string) => {
+    setMeals(prevMeals => ({
+      ...prevMeals,
+      [currentMeal]: prevMeals[currentMeal].map(meal => 
+        meal.name === mealName ? { ...meal, isFavorite: !meal.isFavorite } : meal
+      ),
+    }));
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-100 py-6 flex flex-col justify-center sm:py-12">
+      <Head>
+        <title>Meal Suggestion App</title>
+        <link rel="icon" href="/favicon.ico" />
+      </Head>
+
+      <div className="relative py-3 sm:max-w-xl sm:mx-auto">
+        <div className="absolute inset-0 bg-gradient-to-r from-cyan-400 to-light-blue-500 shadow-lg transform -skew-y-6 sm:skew-y-0 sm:-rotate-6 sm:rounded-3xl"></div>
+        <div className="relative px-4 py-10 bg-white shadow-lg sm:rounded-3xl sm:p-20">
+          <div className="max-w-md mx-auto">
+            <div className="divide-y divide-gray-200">
+              <div className="py-8 text-base leading-6 space-y-4 text-gray-700 sm:text-lg sm:leading-7">
+                <h2 className="text-3xl font-extrabold text-gray-900">Meal Suggestion App</h2>
+                <p className="text-xl">Current Meal: {currentMeal.charAt(0).toUpperCase() + currentMeal.slice(1)}</p>
+                
+                {suggestion && (
+                  <div className="mt-4">
+                    <h3 className="text-2xl font-bold">{suggestion.name}</h3>
+                    <p className="text-gray-600">Category: {suggestion.category}</p>
+                    <button
+                      onClick={() => toggleFavorite(suggestion.name)}
+                      className={`mt-2 px-4 py-2 border rounded-md ${
+                        suggestion.isFavorite ? 'bg-yellow-400 text-yellow-800' : 'bg-gray-200 text-gray-800'
+                      }`}
+                    >
+                      {suggestion.isFavorite ? 'Favorited' : 'Add to Favorites'}
+                    </button>
+                  </div>
+                )}
+
+                <button
+                  onClick={getRandomSuggestion}
+                  className="mt-4 px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                >
+                  Get Suggestion
+                </button>
+
+                <div className="mt-6">
+                  <h3 className="text-lg font-medium">Add New Meal</h3>
+                  <input
+                    type="text"
+                    value={newItemName}
+                    onChange={(e) => setNewItemName(e.target.value)}
+                    placeholder="Meal name"
+                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  />
+                  <input
+                    type="text"
+                    value={newItemCategory}
+                    onChange={(e) => setNewItemCategory(e.target.value)}
+                    placeholder="Category"
+                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  />
+                  <button
+                    onClick={addNewItem}
+                    className="mt-2 px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                  >
+                    Add Meal
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      </div>
     </div>
   );
 }
