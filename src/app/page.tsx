@@ -1,9 +1,7 @@
-// File: pages/index.js
 "use client";
 import { useState, useEffect } from 'react';
 import Head from 'next/head';
 
-// Sample data - in a real app, this would come from a database or API
 const initialMeals: { [key: string]: { name: string; category: string; isFavorite: boolean; }[] } = {
   lunch: [
     { name: 'Grilled Chicken Salad', category: 'Healthy', isFavorite: false },
@@ -24,21 +22,21 @@ export default function Home() {
   const [newItemName, setNewItemName] = useState('');
   const [newItemCategory, setNewItemCategory] = useState('');
 
-  // Determine current meal based on time
+  
   useEffect(() => {
     const now = new Date();
     const hour = now.getHours();
     setCurrentMeal(hour >= 17 ? 'dinner' : 'lunch');
   }, []);
 
-  // Get random suggestion
+  // random suggestion
   const getRandomSuggestion = () => {
     const mealList = meals[currentMeal];
     const randomIndex = Math.floor(Math.random() * mealList.length);
     setSuggestion(mealList[randomIndex]);
   };
 
-  // Add new meal item
+  //new meal item
   const addNewItem = () => {
     if (newItemName && newItemCategory) {
       setMeals(prevMeals => ({
